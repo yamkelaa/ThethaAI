@@ -1,0 +1,65 @@
+# ---------------------------
+# Python cache / compiled files
+# ---------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+*.pickle
+
+# ---------------------------
+# Virtual environment folders
+# ---------------------------
+env/
+venv/
+.venv/
+
+# ---------------------------
+# Dataset files
+# ---------------------------
+data/raw/*
+!data/raw/.gitkeep      # Keep folder structure without uploading data
+data/processed/*
+!data/processed/.gitkeep
+
+# ---------------------------
+# Model checkpoints / weights
+# ---------------------------
+checkpoints/
+*.ckpt
+*.pt
+*.bin
+*.h5
+*.onnx
+
+# ---------------------------
+# Logs & temp files
+# ---------------------------
+logs/
+*.log
+*.tmp
+
+# ---------------------------
+# Streamlit cache
+# ---------------------------
+.streamlit/
+**/.streamlit/
+**/streamlit_cache/
+
+# ---------------------------
+# OS specific
+# ---------------------------
+.DS_Store
+Thumbs.db
+
+# ---------------------------
+# Jupyter Notebook checkpoints (if used)
+# ---------------------------
+.ipynb_checkpoints/
+
+# ---------------------------
+# Configs that contain secrets
+# ---------------------------
+*.env
+config.json
