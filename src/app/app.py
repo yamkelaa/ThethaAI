@@ -3,28 +3,22 @@ import pickle
 from pathlib import Path
 from src.model.ngram import generate_text
 
-# Load trained model
-MODEL_PATH = Path("data/processed/ngram_model.pkl")
+st.set_page_config(
+    page_title="🗣️ ThethaAI – isiXhosa Word N-gram Demo",
+    page_icon="🗣️",
+    layout="centered"
+)
+
+MODEL_PATH = Path("src/model/ngram_model.pkl")
 with open(MODEL_PATH, "rb") as f:
     model = pickle.load(f)
 
-st.title("🗣️ ThethaAI – isiXhosa Conversational Demo")
+st.title("🗣️ ThethaAI – isiXhosa Word N-gram Demo")
+st.write("This model generates isiXhosa-like text using word-level n-grams.")
 
-st.write("You can enter multiple isiXhosa sentences or phrases (one per line).")
-user_input = st.text_area("👉 Enter text:", height=150)
+num_words = st.slider("Length of generated response (words)", min_value=5, max_value=50, value=15)
 
-num_chars = st.slider("Length of generated response (characters)", min_value=30, max_value=200, value=80)
-
-if st.button("Generate Responses"):
-    # Split input into lines
-    inputs = [line.strip() for line in user_input.split("\n") if line.strip()]
-
-    if not inputs:
-        st.warning("Please enter at least one line of text.")
-    else:
-        st.subheader("🤖 ThethaAI Responses:")
-        for i, text in enumerate(inputs, 1):
-            response = generate_text(model, length=num_chars, n=3)
-            st.markdown(f"**Input {i}:** {text}")
-            st.markdown(f"**Response {i}:** {response}")
-            st.write("---")
+if st.button("Generate Text"):
+    response = generate_text(model, n=3, max_words=num_words)
+    st.subheader("🤖 Generated Text:")
+    st.markdown(response)
