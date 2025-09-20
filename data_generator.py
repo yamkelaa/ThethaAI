@@ -1,5 +1,5 @@
 XHOSA_GREETINGS = [
-    "Molo", "Molo unjani", "Ninjani", "Molweni", "Unjani", "Ndiphilile", 
+    "Molo", "Molo unjani", "Ninjani", "Molweni", "Unjani", "Siyaphila", 
     "Ndiyaphila", "Enkosi", "Wena unjani", "Kulungile", "Ewe", "Hayi",
     "Sawubona", "Hallo", "Lotjhani", "Avuxeni"
 ]
