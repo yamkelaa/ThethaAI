@@ -1,4 +1,3 @@
-# Enhanced fake Xhosa dataset
 XHOSA_GREETINGS = [
     "Molo", "Molo unjani", "Ninjani", "Molweni", "Unjani", "Ndiphilile", 
     "Ndiyaphila", "Enkosi", "Wena unjani", "Kulungile", "Ewe", "Hayi",
@@ -35,6 +34,22 @@ XHOSA_CONVERSATIONS = [
     ["Hallo", "Hallo unjani", "Ndiphilile wena", "Ndiyaphila"]
 ]
 
+
+XHOSA_CHARACTER_PATTERNS = [
+    "ndi", "ngu", "ku", "ba", "pha", "tha", "sha", "nya", "mba", "ntu",
+    "mfu", "nqa", "nca", "nxa", "nka", "nga", "nza", "nwa", "nja", "eli",
+    "eni", "ini", "oni", "uni", "athi", "ethi", "ithi", "othi", "uthi",
+    "ando", "endo", "indo", "ondo", "undo", "anga", "enga", "inga", "onga",
+    "unga", "abo", "ebo", "ibo", "obo", "ubo", "aka", "eka", "ika", "oka",
+    
+    "ni", "phi", "thi", "la", "sa", "za", "wa", "ja", "ka", "bo",
+    "go", "ho", "ko", "lo", "ma", "na", "pa", "qa", "ra", "ta",
+    
+    "umu", "aba", "imi", "ama", "isi", "izi", "ubu", "uku", "ili", "iwi",
+    
+    "ntu", "nto", "nke", "nqa", "nca", "nxa", "nka", "nda", "nte", "nse"
+]
+
 def get_training_data():
     """Return all training data as a single text corpus"""
     all_text = []
@@ -56,6 +71,21 @@ def get_word_level_corpus():
     return corpus.split()
 
 def get_char_level_corpus():
-    """Return corpus for character-level training"""
+    """Return corpus for character-level training - enhanced with Xhosa patterns"""
     corpus = get_training_data()
-    return list(corpus)
+    
+    # Convert to character list
+    char_corpus = list(corpus)
+    
+    # Add Xhosa character patterns multiple times to reinforce learning
+    for pattern in XHOSA_CHARACTER_PATTERNS:
+        # Add each pattern 3 times to increase its weight in training
+        char_corpus.extend(list(pattern))
+        char_corpus.extend(list(pattern))
+        char_corpus.extend(list(pattern))
+    
+    # Add common punctuation and whitespace patterns
+    punctuation = ['.', ',', '?', '!', ' ', ' ']  # Extra spaces for better separation
+    char_corpus.extend(punctuation)
+    
+    return char_corpus

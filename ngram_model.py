@@ -37,10 +37,16 @@ class NGramModel:
     def get_next_token(self, context):
         """Get next token based on context using weighted random selection"""
         if context not in self.ngrams or not self.ngrams[context]:
+            # For character mode, try shorter contexts if full context not found
+            if self.mode == 'character' and len(context) > 1:
+                shorter_context = context[1:]
+                if shorter_context in self.ngrams and self.ngrams[shorter_context]:
+                    return self.get_next_token(shorter_context)
+            
             # Fallback: return random token from vocabulary
             if self.vocab:
                 return random.choice(list(self.vocab))
-            return ""
+            return " "
         
         # Get frequency distribution for weighted random selection
         tokens = list(self.ngrams[context].keys())
@@ -59,7 +65,7 @@ class NGramModel:
         return random.choice(tokens)
     
     def generate_text(self, max_length=20, start_context=None):
-        """Generate text using the trained model"""
+        """Generate text using the trained model with better character handling"""
         if not self.ngrams:
             return ""
         
@@ -77,7 +83,7 @@ class NGramModel:
             
             # Pad if necessary
             while len(context_tokens) < self.n - 1:
-                context_tokens.insert(0, "")
+                context_tokens.insert(0, " ")
             
             context = tuple(context_tokens)
         
@@ -93,8 +99,40 @@ class NGramModel:
             
             # Update context
             context = tuple(generated[-(self.n-1):])
+            
+            # For character mode, stop at reasonable punctuation points
+            if self.mode == 'character' and next_token in ['.', '!', '?'] and len(generated) > 10:
+                break
         
         if self.mode == 'word':
-            return " ".join(generated).strip()
+            result = " ".join(generated).strip()
+            # Basic capitalization for word mode
+            if result and result[0].islower():
+                result = result[0].upper() + result[1:]
+            return result
         else:
-            return "".join(generated).strip()
+            result = "".join(generated).strip()
+            # Clean up character mode output
+            result = self._clean_character_output(result)
+            return result
+    
+    def _clean_character_output(self, text):
+        """Clean up character-level output"""
+        if not text:
+            return text
+        
+        # Remove excessive spaces
+        text = ' '.join(text.split())
+        
+        # Ensure proper spacing around punctuation
+        text = text.replace(' .', '.').replace(' ,', ',').replace(' ?', '?').replace(' !', '!')
+        
+        # Capitalize first letter
+        if text and text[0].islower():
+            text = text[0].upper() + text[1:]
+        
+        # Ensure it ends with punctuation
+        if text and text[-1] not in ['.', '!', '?']:
+            text += '.'
+        
+        return text
