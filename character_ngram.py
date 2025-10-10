@@ -87,54 +87,68 @@ class CharacterNGram:
             return 0
         return self.ngram_counts[context].get(char, 0) / self.context_counts[context]
     
-    def generate_word(self, max_length: int = 12, start_pattern: str = None) -> str:
-        """Generate a Xhosa-like word"""
-        if start_pattern:
-            context = '^' + start_pattern
-            context = context[-(self.n - 1):]  # Ensure correct context length
-            generated = list(start_pattern)
-        else:
-            context = '^' * (self.n - 1)
-            generated = []
-        
-        for _ in range(max_length):
-            candidates = []
-            total_prob = 0
-            
-            for char in self.vocab:
-                prob = self.probability(context, char)
-                if prob > 0:
-                    candidates.append((char, prob))
-                    total_prob += prob
-            
-            if not candidates:
-                break
-                
-            # Weighted random selection
-            rand_val = random.uniform(0, total_prob)
-            cumulative = 0
-            
-            for char, prob in candidates:
-                cumulative += prob
-                if rand_val <= cumulative:
-                    if char == '$':  # End of word
-                        break
-                    generated.append(char)
-                    context = context[1:] + char
-                    break
+    def generate_word(self, max_length: int = 12, start_pattern: str = None, max_attempts: int = 10) -> str:
+        """Generate a Xhosa-like word with recursion protection"""
+        for attempt in range(max_attempts):
+            if start_pattern:
+                context = '^' + start_pattern
+                context = context[-(self.n - 1):]  # Ensure correct context length
+                generated = list(start_pattern)
             else:
-                break
+                context = '^' * (self.n - 1)
+                generated = []
+            
+            for _ in range(max_length):
+                candidates = []
+                total_prob = 0
                 
-            if char == '$':
-                break
+                for char in self.vocab:
+                    prob = self.probability(context, char)
+                    if prob > 0:
+                        candidates.append((char, prob))
+                        total_prob += prob
+                
+                if not candidates:
+                    break
+                    
+                # Weighted random selection
+                rand_val = random.uniform(0, total_prob)
+                cumulative = 0
+                selected_char = None
+                
+                for char, prob in candidates:
+                    cumulative += prob
+                    if rand_val <= cumulative:
+                        selected_char = char
+                        break
+                
+                if selected_char is None:
+                    break
+                    
+                if selected_char == '$':  # End of word
+                    break
+                    
+                generated.append(selected_char)
+                context = context[1:] + selected_char
+                
+                if selected_char == '$':
+                    break
+            
+            word = ''.join(generated)
+            validated_word = self._validate_xhosa_word(word)
+            
+            # Only return if we have a reasonable word
+            if validated_word and len(validated_word) >= 2:
+                return validated_word
         
-        word = ''.join(generated)
-        return self._validate_xhosa_word(word)
+        # If all attempts fail, return a fallback word
+        fallback_words = ['mholo', 'unjani', 'ndiyaphila', 'enkosi', 'kakuhle']
+        return random.choice(fallback_words)
     
     def _validate_xhosa_word(self, word: str) -> str:
-        """Apply Xhosa phonological constraints"""
-        if not word:
-            return self.generate_word()  # Retry if empty
+        """Apply Xhosa phonological constraints WITHOUT recursion"""
+        if not word or len(word) < 2:
+            return ""  # Return empty instead of recursing
             
         # Ensure word doesn't start with invalid sequences
         invalid_starts = ['bb', 'dd', 'ff', 'gg', 'hh', 'jj', 'kk', 'll', 
@@ -142,6 +156,8 @@ class CharacterNGram:
         for invalid in invalid_starts:
             if word.startswith(invalid):
                 word = word[1:]  # Remove first character
+                if not word:  # If word becomes empty
+                    return ""
         
         # Ensure reasonable vowel-consonant alternation
         vowels = 'aeiou'
@@ -150,6 +166,7 @@ class CharacterNGram:
         # Count consecutive vowels/consonants
         consecutive_vowels = 0
         consecutive_consonants = 0
+        new_word = []
         
         for char in word:
             if char in vowels:
@@ -160,21 +177,32 @@ class CharacterNGram:
                 consecutive_vowels = 0
             
             # Limit consecutive characters
-            if consecutive_vowels > 3:
-                word = word.replace(char * 4, char * 2)
-            if consecutive_consonants > 2:
-                word = word.replace(char * 3, char * 2)
+            if consecutive_vowels <= 3 and consecutive_consonants <= 2:
+                new_word.append(char)
+            # If limits exceeded, skip this character
         
-        return word
+        result = ''.join(new_word)
+        return result if len(result) >= 2 else ""
     
     def generate_multiple_words(self, count: int = 5) -> List[str]:
         """Generate multiple Xhosa-like words"""
         words = []
-        for _ in range(count):
+        attempts = 0
+        max_total_attempts = count * 20  # Prevent infinite loops
+        
+        while len(words) < count and attempts < max_total_attempts:
             word = self.generate_word()
-            if len(word) >= 3:  # Only keep reasonably long words
+            if word and len(word) >= 3:  # Only keep reasonably long words
                 words.append(word)
-        return words
+            attempts += 1
+        
+        # Fill with fallbacks if needed
+        while len(words) < count:
+            fallback_words = ['mholo', 'unjani', 'ndiyaphila', 'enkosi', 'kakuhle', 
+                            'sawubona', 'ngiyaphila', 'ngiyabonga', 'hamba', 'yah']
+            words.append(random.choice(fallback_words))
+        
+        return words[:count]
     
     def perplexity(self, test_words: List[str]) -> float:
         """Calculate perplexity on test words"""
