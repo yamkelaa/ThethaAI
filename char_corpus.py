@@ -105,7 +105,6 @@ COMMON_XHOSA_WORDS = [
 
 def get_char_corpus():
     """Get corpus for character-level N-gram training"""
-    # Combine patterns and words to create rich character training data
     patterns_text = " ".join(CHARACTER_PATTERNS)
     words_text = " ".join(COMMON_XHOSA_WORDS)
     return patterns_text + " " + words_text

@@ -20,19 +20,15 @@ class CharacterNGram:
         
     def train(self, text_corpus: str):
         """Train the character-level N-gram model"""
-        # Preprocess for character-level training
         text = text_corpus.lower()
         
-        # Remove excessive whitespace but preserve word boundaries
         text = ' '.join(text.split())
         
-        # Add start and end of word markers
         words = text.split()
         for word in words:
-            if len(word) < 2:  # Skip very short words
+            if len(word) < 2:  
                 continue
                 
-            # Pad word with start/end markers
             padded_word = '^' + word + '$'
             
             for i in range(len(padded_word) - self.n + 1):
@@ -92,7 +88,7 @@ class CharacterNGram:
         for attempt in range(max_attempts):
             if start_pattern:
                 context = '^' + start_pattern
-                context = context[-(self.n - 1):]  # Ensure correct context length
+                context = context[-(self.n - 1):] 
                 generated = list(start_pattern)
             else:
                 context = '^' * (self.n - 1)
@@ -125,7 +121,7 @@ class CharacterNGram:
                 if selected_char is None:
                     break
                     
-                if selected_char == '$':  # End of word
+                if selected_char == '$': 
                     break
                     
                 generated.append(selected_char)
@@ -137,33 +133,27 @@ class CharacterNGram:
             word = ''.join(generated)
             validated_word = self._validate_xhosa_word(word)
             
-            # Only return if we have a reasonable word
             if validated_word and len(validated_word) >= 2:
                 return validated_word
         
-        # If all attempts fail, return a fallback word
         fallback_words = ['mholo', 'unjani', 'ndiyaphila', 'enkosi', 'kakuhle']
         return random.choice(fallback_words)
     
     def _validate_xhosa_word(self, word: str) -> str:
         """Apply Xhosa phonological constraints WITHOUT recursion"""
         if not word or len(word) < 2:
-            return ""  # Return empty instead of recursing
-            
-        # Ensure word doesn't start with invalid sequences
+            return ""  
         invalid_starts = ['bb', 'dd', 'ff', 'gg', 'hh', 'jj', 'kk', 'll', 
                          'mm', 'nn', 'pp', 'qq', 'rr', 'ss', 'tt', 'vv', 'ww', 'xx', 'yy', 'zz']
         for invalid in invalid_starts:
             if word.startswith(invalid):
-                word = word[1:]  # Remove first character
-                if not word:  # If word becomes empty
+                word = word[1:]  
+                if not word:  
                     return ""
         
-        # Ensure reasonable vowel-consonant alternation
         vowels = 'aeiou'
         consonants = 'bcdfghjklmnpqrstvwxyz'
         
-        # Count consecutive vowels/consonants
         consecutive_vowels = 0
         consecutive_consonants = 0
         new_word = []
@@ -176,10 +166,8 @@ class CharacterNGram:
                 consecutive_consonants += 1
                 consecutive_vowels = 0
             
-            # Limit consecutive characters
             if consecutive_vowels <= 3 and consecutive_consonants <= 2:
                 new_word.append(char)
-            # If limits exceeded, skip this character
         
         result = ''.join(new_word)
         return result if len(result) >= 2 else ""
@@ -188,15 +176,14 @@ class CharacterNGram:
         """Generate multiple Xhosa-like words"""
         words = []
         attempts = 0
-        max_total_attempts = count * 20  # Prevent infinite loops
+        max_total_attempts = count * 20  
         
         while len(words) < count and attempts < max_total_attempts:
             word = self.generate_word()
-            if word and len(word) >= 3:  # Only keep reasonably long words
+            if word and len(word) >= 3:  
                 words.append(word)
             attempts += 1
         
-        # Fill with fallbacks if needed
         while len(words) < count:
             fallback_words = ['mholo', 'unjani', 'ndiyaphila', 'enkosi', 'kakuhle', 
                             'sawubona', 'ngiyaphila', 'ngiyabonga', 'hamba', 'yah']
